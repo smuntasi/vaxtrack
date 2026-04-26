@@ -2,10 +2,14 @@ from flask import Flask, render_template, request
 from sqlalchemy import create_engine, text
 import json
 from decimal import Decimal
+from dotenv import load_dotenv
+import os
 
 app = Flask(__name__)
 
-DB_URL = "postgresql://postgres:postgres@localhost:5432/vaxtrack"
+load_dotenv()
+DB_URL = os.getenv("DB_URL")
+
 engine = create_engine(DB_URL)
 
 

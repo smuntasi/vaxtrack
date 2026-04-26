@@ -1,12 +1,16 @@
 import logging
 from sqlalchemy import create_engine, text
 import pandas as pd
+from dotenv import load_dotenv
+import os
+from dotenv import load_dotenv
+import os
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
-DB_URL = "postgresql://postgres:postgres@localhost:5432/vaxtrack"
-
+load_dotenv()
+DB_URL = os.getenv("DB_URL")
 
 def get_engine():
     return create_engine(DB_URL)
