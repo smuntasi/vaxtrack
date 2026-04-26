@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VaxTrack Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f4f6f9; color: #1a1a2e; }
+    header { background: #1a1a2e; color: white; padding: 20px 40px; }
+    header h1 { font-size: 1.6rem; font-weight: 600; }
+    header p { font-size: 0.9rem; opacity: 0.7; margin-top: 4px; }
+    main { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+    .charts { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 32px; }
+    .card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 20px; color: #444; }
+    .filters { display: flex; gap: 16px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+    .filters select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; background: white; }
+    .filters button { padding: 8px 20px; background: #1a1a2e; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    thead th { text-align: left; padding: 10px 12px; background: #f4f6f9; color: #666; font-weight: 600; border-bottom: 1px solid #eee; }
+    tbody td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; }
+    tbody tr:hover { background: #fafafa; }
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
+    .badge.High { background: #d1fae5; color: #065f46; }
+    .badge.Moderate { background: #fef3c7; color: #92400e; }
+    .badge.Low { background: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>VaxTrack</h1>
+    <p>CDC Childhood Vaccination Coverage Analytics</p>
+  </header>
+  <main>
+    <div class="charts">
+      <div class="card">
+        <h2>Average Coverage by Vaccine</h2>
+        <canvas id="vaccineChart" height="120"></canvas>
+      </div>
+      <div class="card">
+        <h2>Coverage Category Breakdown</h2>
+        <canvas id="categoryChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Records</h2>
+      <div class="filters">
+        <form method="GET" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+          <select name="vaccine">
+            <option value="All">All Vaccines</option>
+            {% for v in vaccines %}
+            <option value="{{ v }}" {% if v == selected_vaccine %}selected{% endif %}>{{ v }}</option>
+            {% endfor %}
+          </select>
+          <select name="year">
+            <option value="All">All Years</option>
+            {% for y in years %}
+            <option value="{{ y }}" {% if y|string == selected_year %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit">Filter</button>
+        </form>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Year</th><th>State</th><th>Vaccine</th>
+            <th>Dose</th><th>Coverage %</th><th>Category</th>
+            <th>Dimension</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in records %}
+          <tr>
+            <td>{{ r.survey_year }}</td>
+            <td>{{ r.geography }}</td>
+            <td>{{ r.vaccine }}</td>
+            <td>{{ r.dose }}</td>
+            <td>{{ r.coverage_estimate }}%</td>
+            <td><span class="badge {{ r.coverage_category }}">{{ r.coverage_category }}</span></td>
+            <td>{{ r.dimension }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    const byVaccine = {{ by_vaccine | safe }};
+    const byCategory = {{ by_category | safe }};
+
+    new Chart(document.getElementById("vaccineChart"), {
+      type: "bar",
+      data: {
+        labels: byVaccine.map(d => d.vaccine),
+        datasets: [{
+          label: "Avg Coverage %",
+          data: byVaccine.map(d => d.avg_coverage),
+          backgroundColor: "#3b82f6",
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: { y: { min: 80, max: 95 } }
+      }
+    });
+
+    new Chart(document.getElementById("categoryChart"), {
+      type: "doughnut",
+      data: {
+        labels: byCategory.map(d => d.coverage_category),
+        datasets: [{
+          data: byCategory.map(d => d.count),
+          backgroundColor: ["#d1fae5", "#fef3c7", "#fee2e2"],
+          borderWidth: 1,
+        }]
+      }
+    });
+  </script>
+</body>
+</html>
