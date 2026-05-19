@@ -24,7 +24,7 @@ CDC API → Extract → Transform → PostgreSQL → Flask Dashboard
 ## Setup
 
 ### 1. Clone the repo
-git clone https://github.com/YOUR_USERNAME/vaxtrack.git
+git clone https://github.com/smuntasi/vaxtrack.git
 cd vaxtrack
 
 ### 2. Create virtual environment
